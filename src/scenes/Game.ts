@@ -24,19 +24,26 @@ export default class Game extends Phaser.Scene {
     const ground = map.createLayer("ground", tileset);
     ground.setCollisionByProperty({ collides: true });
 
-    this.matter.world.convertTilemapLayer(ground);
+    const objectsLayer = map.getObjectLayer("objects");
+    objectsLayer.objects.forEach((objData) => {
+      const { x = 0, y = 0, name, width = 0 } = objData;
+      switch (name) {
+        case "penguin-spawn": {
+          this.penguin = this.matter.add
+            .sprite(x + width * 0.5, y, "penguin")
+            .play("player-idle")
+            .setFixedRotation();
 
-    const { width, height } = this.scale;
-    this.penguin = this.matter.add
-      .sprite(width * 0.5, height * 0.2, "penguin")
-      .play("player-idle")
-      .setFixedRotation();
+          this.penguin.setOnCollide((data: MatterJS.ICollisionPair) => {
+            this.isTouchingGround = true;
+          });
+          this.cameras.main.startFollow(this.penguin);
 
-    this.penguin.setOnCollide((data: MatterJS.ICollisionPair) => {
-      this.isTouchingGround = true;
+          break;
+        }
+      }
     });
-
-    this.cameras.main.startFollow(this.penguin);
+    this.matter.world.convertTilemapLayer(ground);
   }
   update() {
     const speed = 5;
